@@ -85,6 +85,26 @@ header {
     overflow: hidden;
 }
 
+.archives-wrapper-outer {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+.archives-wrapper-outer::-webkit-scrollbar {
+    width: 6px;
+}
+
+.archives-wrapper-outer::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 99px;
+}
+
 #archives-section::before {
     content: "";
     position: absolute;
@@ -97,28 +117,13 @@ header {
     pointer-events: none;
 }
 
-.archives-wrapper-outer {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    position: relative;
-}
-
 .archives-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 22px;
     width: 100%;
-    height: max-content;
-    padding-top: 16px;
-    animation: upScrollMarquee var(--marquee-duration, 30s) linear infinite;
-    will-change: transform;
-}
-
-@keyframes upScrollMarquee {
-    0% { transform: translateY(0); }
-    100% { transform: translateY(-50%); }
+    padding: 16px 0 24px 0;
 }
 
 .archives-card {
@@ -328,38 +333,14 @@ function buildArchiveCard(video) {
 
 function renderArchives() {
     const track = document.getElementById("archives-track");
-    const feedHeight = document.getElementById("archives-section").clientHeight || window.innerHeight;
     track.innerHTML = "";
 
-    if (archiveVideos.length === 0) return;
-
-    // Repeat the list enough times so one "half" of the vertical track
-    // is at least as tall as the visible feed area — otherwise the
-    // loop would show a gap right before it jumps back to the start.
-    const CARD_HEIGHT_ESTIMATE = 280; // px, including gap — rough but safe
-    const minCardsNeeded = Math.ceil(feedHeight / CARD_HEIGHT_ESTIMATE) + 1;
-    const repeatCount = Math.max(1, Math.ceil(minCardsNeeded / archiveVideos.length));
-    const half = [];
-    for (let i = 0; i < repeatCount; i++) half.push(...archiveVideos);
-
-    // Two identical halves stacked = seamless infinite loop when
-    // translated by exactly one half's height (-50%).
-    [...half, ...half].forEach(video => {
+    archiveVideos.forEach(video => {
         track.appendChild(buildArchiveCard(video));
     });
-
-    // Scale scroll speed to how much content is actually in the loop,
-    // so the drift stays a consistent pace no matter the video count.
-    const wrapperOuter = document.querySelector(".archives-wrapper-outer");
-    const duration = Math.max(18, half.length * 7);
-    wrapperOuter.style.setProperty("--marquee-duration", `${duration}s`);
 }
 
 renderArchives();
-window.addEventListener("resize", () => {
-    clearTimeout(window.__archivesResizeTimer);
-    window.__archivesResizeTimer = setTimeout(renderArchives, 250);
-});
 
 /* STARFALL BACKGROUND */
 (() => {

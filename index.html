@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<meta property="og:type" content="katarantaduhan" />
+<meta property="og:site_name" content="" />
+<meta property="og:title" content="tanginanyo" />
+<meta property="og:description" content="by demps" />
+<meta property="og:image" content="" />
+<meta name="theme-color" content="#232423" />
+
+<title>tutus incidents</title>
+<link rel="icon" type="image/png" href="">
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    background: #000;
+    color: white;
+    overflow: hidden;
+}
+
+#starfall-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.95;
+    display: block;
+}
+
+#website {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+header {
+    flex-shrink: 0;
+    width: 100%;
+    padding: max(24px, env(safe-area-inset-top)) 20px 18px 20px;
+    text-align: center;
+}
+
+@keyframes delayedColorShift {
+    0%, 25% { background-position: 0% 50%; }
+    50%, 75% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.hall-of-fame-title {
+    font-size: clamp(20px, 6vw, 28px);
+    font-weight: 900;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    background: linear-gradient(270deg, #ffffff, #888888, #111111, #888888, #ffffff);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: delayedColorShift 6s ease-in-out infinite;
+}
+
+#archives-section {
+    flex: 1;
+    width: 100%;
+    min-height: 0; 
+    position: relative;
+    overflow: hidden;
+}
+
+#archives-section::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: linear-gradient(to bottom, #000 0%, transparent 100%);
+    z-index: 3;
+    pointer-events: none;
+}
+
+.archives-wrapper-outer {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.archives-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+    width: 100%;
+    height: max-content;
+    padding-top: 16px;
+    animation: upScrollMarquee var(--marquee-duration, 30s) linear infinite;
+    will-change: transform;
+}
+
+@keyframes upScrollMarquee {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-50%); }
+}
+
+.archives-card {
+    position: relative;
+    width: min(88vw, 420px);
+    background: rgba(13, 13, 15, 0.9);
+    border-radius: 16px;
+    overflow: hidden;
+    text-decoration: none;
+    display: block;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    flex-shrink: 0;
+    padding: 0;
+    text-align: left;
+    cursor: pointer;
+    color: inherit;
+    font: inherit;
+}
+
+.archives-card:active {
+    transform: scale(0.98);
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+.archives-img-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    overflow: hidden;
+}
+
+.archives-img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.archives-info {
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    background: rgba(13, 13, 15, 0.95);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.archives-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.archives-play-badge {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.archives-play-badge svg {
+    width: 48px;
+    height: 48px;
+    opacity: 0.9;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6));
+}
+
+@media (min-width: 640px) {
+    #website {
+        max-width: 480px;
+        margin: 0 auto;
+        border-left: 1px solid rgba(255, 255, 255, 0.08);
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+    }
+}
+</style>
+</head>
+
+<body>
+<canvas id="starfall-canvas" aria-hidden="true"></canvas>
+
+<div id="website">
+    <header>
+        <h1 class="hall-of-fame-title">tutus archives</h1>
+    </header>
+
+    <div id="archives-section">
+        <div class="archives-wrapper-outer">
+            <div class="archives-container" id="archives-track"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ============================================================
+   ADD YOUR OWN VIDEOS HERE.
+   For each entry:
+     - url:       the link the card opens in a new tab
+                  (YouTube, or any other video page/file)
+     - title:     the title shown on the card
+     - thumbnail: image shown on the card.
+                  Leave blank ("") to auto-generate from a YouTube url.
+                  For non-YouTube links, provide a thumbnail image URL.
+   ============================================================ */
+const archiveVideos = [
+    {
+        url: "https://youtube.com/shorts/iwpQorK-YJA?feature=share",
+        title: "rene bartebonia",
+        thumbnail: ""
+    },
+    {
+        url: "https://youtube.com/shorts/eFMOPu2gKU0?feature=share",
+        title: "tagal tagal e",
+        thumbnail: ""
+    },
+    {
+        url: "https://youtube.com/shorts/A8TmPuTXou0?feature=share",
+        title: "pinalo sa pwet",
+        thumbnail: ""
+    },
+    {
+        url: "https://youtube.com/shorts/p6a5QZ8XVj8?si=F3NmUpVuwQwpBZmI",
+        title: "what is bro doing",
+        thumbnail: ""
+    },
+    {
+        url: "https://youtube.com/shorts/qorNcSY_0Vg?feature=share",
+        title: "awit HAHAAHAHAHAHAHAHA",
+        thumbnail: ""
+    },
+    {
+        url: "https://youtu.be/PnVDyqPjGw8",
+        title: "trickshot",
+        thumbnail: ""
+    },
+    {
+        url: "https://youtube.com/shorts/qorNcSY_0Vg?feature=share",
+        title: "awit HAHAAHAHAHAHAHAHA",
+        thumbnail: ""
+    },
+];
+
+function getYouTubeId(url) {
+    const patterns = [
+        /youtu\.be\/([a-zA-Z0-9_-]+)/,
+        /youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/,
+        /youtube\.com\/embed\/([a-zA-Z0-9_-]+)/,
+        /youtube\.com\/shorts\/([a-zA-Z0-9_-]+)/
+    ];
+    for (const p of patterns) {
+        const m = url.match(p);
+        if (m) return m[1];
+    }
+    return null;
+}
+
+function buildArchiveCard(video) {
+    const a = document.createElement("a");
+    a.href = video.url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.className = "archives-card";
+    a.setAttribute("aria-label", video.title || "Watch on YouTube");
+
+    const imgWrapper = document.createElement("div");
+    imgWrapper.className = "archives-img-wrapper";
+
+    const img = document.createElement("img");
+    img.alt = video.title || "";
+    img.loading = "lazy";
+
+    const ytId = getYouTubeId(video.url);
+    if (video.thumbnail) {
+        img.src = video.thumbnail;
+    } else if (ytId) {
+        img.src = `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
+        img.onerror = () => { img.onerror = null; img.src = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`; };
+    }
+
+    const playBadge = document.createElement("div");
+    playBadge.className = "archives-play-badge";
+    playBadge.innerHTML = `<svg viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="12" r="11" fill="rgba(13,13,15,0.75)" stroke="#fff" stroke-width="1"/><path d="M9.5 7.5v9l8-4.5z"/></svg>`;
+
+    imgWrapper.appendChild(img);
+    imgWrapper.appendChild(playBadge);
+
+    const info = document.createElement("div");
+    info.className = "archives-info";
+
+    const title = document.createElement("div");
+    title.className = "archives-title";
+    title.textContent = video.title || "";
+
+    info.appendChild(title);
+
+    a.appendChild(imgWrapper);
+    a.appendChild(info);
+
+    return a;
+}
+
+function renderArchives() {
+    const track = document.getElementById("archives-track");
+    const feedHeight = document.getElementById("archives-section").clientHeight || window.innerHeight;
+    track.innerHTML = "";
+
+    if (archiveVideos.length === 0) return;
+
+    // Repeat the list enough times so one "half" of the vertical track
+    // is at least as tall as the visible feed area — otherwise the
+    // loop would show a gap right before it jumps back to the start.
+    const CARD_HEIGHT_ESTIMATE = 280; // px, including gap — rough but safe
+    const minCardsNeeded = Math.ceil(feedHeight / CARD_HEIGHT_ESTIMATE) + 1;
+    const repeatCount = Math.max(1, Math.ceil(minCardsNeeded / archiveVideos.length));
+    const half = [];
+    for (let i = 0; i < repeatCount; i++) half.push(...archiveVideos);
+
+    // Two identical halves stacked = seamless infinite loop when
+    // translated by exactly one half's height (-50%).
+    [...half, ...half].forEach(video => {
+        track.appendChild(buildArchiveCard(video));
+    });
+
+    // Scale scroll speed to how much content is actually in the loop,
+    // so the drift stays a consistent pace no matter the video count.
+    const wrapperOuter = document.querySelector(".archives-wrapper-outer");
+    const duration = Math.max(18, half.length * 7);
+    wrapperOuter.style.setProperty("--marquee-duration", `${duration}s`);
+}
+
+renderArchives();
+window.addEventListener("resize", () => {
+    clearTimeout(window.__archivesResizeTimer);
+    window.__archivesResizeTimer = setTimeout(renderArchives, 250);
+});
+
+/* STARFALL BACKGROUND */
+(() => {
+    const canvas = document.getElementById("starfall-canvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d", { alpha: true });
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    let stars = [];
+
+    function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+        stars = Array.from({ length: 40 }, () => ({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            r: Math.random() * 1.2 + 0.3,
+            alpha: Math.random() * 0.7 + 0.2
+        }));
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+        for (const s of stars) {
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255,255,255,${s.alpha})`;
+            ctx.fill();
+        }
+        requestAnimationFrame(animate);
+    }
+
+    window.addEventListener("resize", resize);
+    resize();
+    animate();
+})();
+</script>
+</body>
+</html>
